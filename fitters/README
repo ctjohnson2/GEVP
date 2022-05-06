@@ -1,0 +1,4 @@
+this c++ code is still under development, but to compile one needs itpp libraries and gsl
+
+
+python script fits principle correlators just fine but is slow
