@@ -85,27 +85,27 @@ class eigen_solve():
         Ncfgs = data.shape[0]
         Ntslices = data.shape[3]
 
-        Creal=np.array([])
-        Cimag=np.array([])
+        Creal=np.zeros(data.shape)
+        Cimag=np.zeros(data.shape)
         print(f"Loading Correlator matrix",flush=True)
 
-        for cfg in range(0,Ncfgs):
-          for i in range(op_num):
-             for j in range(op_num):
-               total = data[cfg][ops_map[i][1]][ops_map[j][1]].real
-               totalim = data[cfg][ops_map[i][1]][ops_map[j][1]].imag
-               zeros = np.zeros(Ntslices)
+        #for cfg in range(0,Ncfgs):
+        for i in range(op_num):
+          for j in range(op_num):
+               total = data[:,ops_map[i][1],ops_map[j][1],:].real
+               totalim = data[:,ops_map[i][1],ops_map[j][1],:].imag
+               zeros = np.zeros((Ncfgs,Ntslices))
                if np.array_equal(total, zeros)==True and np.array_equal(totalim,zeros)==True:
                   #### checking if symmetric part is nonzero ####
-                  total = data[cfg][ops_map[j][1]][ops_map[i][1]].real
-                  totalim = data[cfg][ops_map[j][1]][ops_map[i][1]].imag
+                  total = data[:,ops_map[j][1],ops_map[i][1],:].real
+                  totalim = data[:,ops_map[j][1],ops_map[i][1],:].imag
 
-               Creal =np.append(Creal,total)
-               Cimag =np.append(Cimag,totalim)
+               Creal[:,i,j,:] = total
+               Cimag[:,i,j,:]  = totalim
 
 
-        Creal = Creal.reshape(Ncfgs,op_num,op_num,Ntslices)
-        Cimag = Cimag.reshape(Ncfgs,op_num,op_num,Ntslices)
+        #Creal = Creal.reshape(Ncfgs,op_num,op_num,Ntslices)
+        #Cimag = Cimag.reshape(Ncfgs,op_num,op_num,Ntslices)
 
 
 
@@ -208,12 +208,20 @@ class eigen_solve():
         Ldag_inv = np.linalg.inv(Ldag)
         for t in range(Nt):
           for op in range(op_num):
-      #      vecs_trans[cfg,t,:,op] = Ldag_inv.dot(vecs_ordered[cfg,t,:,op])
+            vecs_trans[cfg,t,:,op] = Ldag_inv.dot(vecs_ordered[cfg,t,:,op])
         
-            vecs_trans[cfg,t,op,:] = vecs_ordered[cfg,t,op,:].conj().dot(Ldag)
+            #vecs_trans[cfg,t,op,:] = vecs_trans[cfg,t,op,:].conj().dot(Ldag)
       return vecs_trans
     
-      
+    def Zs(vecs_trans,t0,m):
+        Zs = np.zeros(vecs_trans.shape)
+        Ncfgs, Nt , ops= vecs_trans.shape[0], vecs_trans.shape[1], vecs_trans.shape[2]
+        for cfg in range(Ncfgs):
+            for t in range(Nt):
+                Zs[cfg,t,:,:] = np.linalg.inv(vecs_trans[cfg,t,:,:])
+        for state in range(ops):
+            Zs[:,:,state,:] = Zs[:,:,state,:]*np.sqrt(2*m[state])*np.exp(m[state]*t0/2)
+        return Zs
 
 class jack_utils():
 ###################### jackknife utility functions #####################
@@ -269,9 +277,9 @@ class jack_utils():
               cov+=(prin_corr[cfg,t1+tmin]-avg[t1])*(prin_corr[cfg,t2+tmin]-avg[t2])
      
             Cov[t1,t2] = cov/(Ncfgs)
-        
+     
         cinv = np.linalg.pinv(Cov, rcond = svd_cut_off)
-       
+        
         return cinv
 class read_jacks():
 
@@ -290,7 +298,17 @@ class read_jacks():
           c+=1
       f.close()
       return prin_corr
+    def param(mass_name):
+      f = open(mass_name,"r")
+      lines = f.readlines()
+      Ncfgs = int(lines[0].split(' ')[0])
+      masses = [] 
+      for i in range(len(lines)):
+        if i!=0:
+          masses = np.append(masses, float(lines[i].split(' ')[2]))
+      return masses
 
+         
 class write_jacks():
 
     def param(file_name, param_jack):
@@ -421,12 +439,12 @@ def fit_(prin_corr,lambda_type,t0,tmin,tmax,svd_cutoff):
   return(end_params,chi/Ncfgs)
        
 
-#def main():
+def main():
        
-#   prin_corr = read_jacks.prin_corr("prin_correlator_1.jack")
-#   print(prin_corr)
-#   result = fit_(prin_corr,"double_exp",3,5,10,1.0e-6) 
+   prin_corr = read_jacks.prin_corr("principle_correlator_7.jack")
+   print(prin_corr)
+   result = fit_(prin_corr,"double_exp",3,4,20,1.0e-6) 
 
-#   write_jacks.param("m.jack",result[0][1])
-#if __name__== "__main__":
-#   main()
+   write_jacks.param("m.jack",result[0][1])
+if __name__== "__main__":
+   main()
