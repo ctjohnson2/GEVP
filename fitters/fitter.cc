@@ -511,7 +511,7 @@ fit_params Fit_stuff::fit_prin_corr(vector<vector<double>> p_corr_jack, itpp::ma
 
 	for(int t=minTSlices; t<tmax-tmin;t++){
 	fit_params result = fit.fit_prin_corr(p_corr_jack, invcov, t0, tmin, tmax, t);
-	cout<<"t: "<<t<<"    "<<omp_get_thread_num()  <<endl;
+	//cout<<"t: "<<t<<"    "<<omp_get_thread_num()  <<endl;
 	cout<<ensem.average(result.m0)<<" "<<sqrt(ensem.variance(result.m0)/(Ncfgs-1))<<"    CHISQ= "<<result.chisq<<endl;
 	}
 	
