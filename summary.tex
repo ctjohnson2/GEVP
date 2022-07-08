@@ -1,0 +1,112 @@
+%\documentclass{article}
+\documentclass[onecolumn,article,preprintnumbers]{revtex4-1}
+\usepackage{setspace}
+%\usepackage{indentfirst}
+%% graphics, figures %%
+\usepackage{graphicx, color}
+\graphicspath{{./figures/}}
+\usepackage{placeins}
+\usepackage{wrapfig}
+\usepackage{subcaption}
+
+
+%\setlength{\abovecaptionskip}{2pt}
+
+%% referencing %%
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+
+
+%% math, tables %%
+\usepackage{bm, amsmath, amsfonts, amssymb,xfrac}
+\usepackage{multirow, tabularx, dcolumn}
+\usepackage{mathtools,leftidx, braket, slashed, cancel, bigdelim}
+\usepackage{blkarray}
+\usepackage[figures]{rotating}
+%\usepackage{fullpage}
+\begin{document}
+
+\title{Generalized eigenvalue problem}
+
+\section{The problem}
+The goal is to extract the finite-volume energy spectrum from a matrix of correlation functions calculated from lattice QCD.
+A correlation function for a hadron interpolator $O_a$ created at time $0$, and annihilated at time $t$ is often written as the time-ordered vacuum expectation value
+\begin{equation}
+C(t)=\langle O_a(t)O_a^{\dag}(0)\rangle .
+\end{equation}
+Utilizing Euclidean time one can re-write the time-dependance of the operator in the interaction picture as $O_a(t)=e^{t\hat{H}}\hat{O}_ae^{-t\hat{H}}$ where $\hat{H}$ is the Hamiltonian. Inserting a complete set of states in between the creation and annihilation operators we find
+\begin{align}
+C(t)&=\langle0|e^{t\hat{H}}\hat{O}_ae^{-t\hat{H}}\sum_n\left(\frac{1}{2E_n}|n\rangle\langle n|\right)\hat{O}_a^{\dag}|0\rangle \\
+C(t)&=\sum_n\frac{1}{2E_n}\langle0|\hat{O}_a|n\rangle\langle n |\hat{O}_a^{\dag}|0\rangle  e^{-tE_n}
+\end{align}
+We can see from this representation that at sufficiently large $t$ the correlation function is dominated by the ground state
+\begin{equation}
+C(t)\rightarrow |\langle 0|\hat{O}_a|E_0\rangle | ^2 e^{-tE_0} \label{larget}.
+\end{equation}
+Now suppose we have a basis of operators $\{O_i\}$ with the same $J^{PC}$. This basis could include hadron interpolators as well as multi-hadron interpolators, but for now the details of the exact interpolators are not important, so long as the have the same quantum numbers. As in the single correlation function example the goal is to extract energy eigenstates of the Hamiltonian through the time-dependance of the correlation function, which is now the matrix
+\begin{equation}
+C_{ij}(t)=\sum_n\frac{1}{2E_n}\langle0|\hat{O}_i|n\rangle\langle n |\hat{O}_j^{\dag}|0\rangle  e^{-tE_n}
+\label{spec_dec}.
+\end{equation}
+
+One may be tempted to directly fit each element of the matrix of correlation functions to a sum of exponentials, however this can be rather difficult if one is attempting to extract many energy states, in particular this method cannot extract levels that may be degenerate or nearly degenerate. An alternative is to diagonalize this matrix finding the linear combination of operators that best interpolate each state. Alternatively we want to minimize
+
+\begin{equation}
+L = v_{\beta}^{\dag}C(t)v_{\alpha}.
+\end{equation}
+The Euler-Lagrange equation can quite easily lead to a trivial solution for the eigenvector. Let us introduce the Lagrange multiplier $\lambda_{\alpha} v^{\dag}_{\beta}C(t_0)v_{\alpha}$ with $v^{\dag}_{\beta}C(t_0)v_{\alpha}=\delta_{\alpha\beta}$
+
+\begin{equation}
+L =  v_{\beta}^{\dag}C(t)v_{\alpha} - \lambda v_{\beta}^{\dag}C(t_0)v_{\alpha}.
+\end{equation}
+The E-L equations lead us to the following generalized eigenvalue problem
+\begin{equation}
+C(t)v_{\alpha} = \lambda_{\alpha}(t)C(t_0)v_{\alpha}\label{gevp}.
+\end{equation}
+Generally speaking these eigenvectors are time-dependent $v_{\alpha} = v_{\alpha}(t)$, but in practice we find the eigenvectors are flat in time. Introducing the orthogonality on the metric $v^{\dag}_{\beta}C(t_0)v_{\alpha}$ is an approximating to the infinite-volume case where one expects an infinite basis. This approximation is only legitimate if we are in the energy region dominated by the lightest $N$ states where $N$ is the rank of the matrix of correlation functions. As we saw in equation \ref{larget} the heavier state contribution is negligible at larger time-slices so one wants to choose $t_0$ values large enough that this is the case. Alternatively, one does not want to choose $t_0$ too large that the correlation function $C(t_0)$ is dominated by statistical fluctuation, and as we can see from equation \ref{gevp}, one would be introducing this noise to every time-slice. One could then develop a sophisticated method to choosing the optimal $t_0$, but in practice one should solve the generalized eigenvalue problem for a range $t_0$'s and find that the spectrum stays similar for what I will coin the ``Goldilocks" of $t_0$ values. 
+
+Moving forward I will now discuss two methods for solving the GEVP.
+
+\subsection{Cholesky Method}
+
+A common method for solving GEVP is done via a Cholesky decomposition. For a Hermitian positive-definite matrix $C(t_0)$, one can write this as the product $C(t_0)=LL^{\dag}$ where $L$ is a lower triangular matrix. This can be used to transform the GEVP into a conventional eigenvalue problem in the following way
+\begin{align}
+C(t)v_{\alpha}(t)&=\lambda_{\alpha}(t)C(t_0)v_{\alpha}(t) \\
+C(t)v_{\alpha}(t)&=\lambda_{\alpha}(t)\left(LL^{\dag}\right)v_{\alpha}(t) \\
+L^{-1}C(t)(L^{\dag})^{-1}(L^{\dag}v_{\alpha}(t))& = \lambda_{\alpha}(t)(L^{\dag}v_{\alpha}(t))\\
+\tilde{C}(t)u_{\alpha}(t)&=\lambda_{\alpha}(t)u_{\alpha}(t).
+\end{align}
+
+One can then solve the transformed eigenvalue problem and convert $u_{\alpha}(t)$ into $v_{\alpha}(t)$. This method is guaranteed to work provided that $C(t_0)$ is positive-definite. This could fail if an eigenvalue of $C(t_0)$ has a noisy entry and an eigenvalue for a configuration fluctuates below zero, or if $C(t_0)$ row rank is not equal to the number of operators. The first can usually be solved by going to an earlier choice of $t_0$, the second case could happen for at least two reasons; one has a basis of operators that are not linearly independent, or an operator vanishes due to a symmetry (for example Bose-symmetry).
+
+\subsection{Singular Value Decomposition}
+
+Another way to solve this GEVP is via Singular value decomposition (SVD). This method relies on the fact that any $n\times m$ matrix $A$ can be written as 
+\begin{equation}
+A = U\Sigma V^{\dag}
+\end{equation}
+where $\Sigma =\text{diag}\{\sigma_1,\sigma_2,...,\sigma_n\}$, and $U^{\dag}U=V^{\dag}V=I$. For square matrices, this reduces to an eigenvalue decomposition so for our case $U=V$. The SVD of a matrix can be used to compute inverses of matrices,
+\begin{equation}
+A^{-1} = U\Sigma^{-1}U^{\dag}
+\end{equation}
+where $\Sigma =\text{diag}\{\frac{1}{\sigma_1},\frac{1}{\sigma_2},...,\frac{1}{\sigma_n}\}$. The problem arises when a singular value is zero $\sigma_i=0$, or equivalently if A is singular. In this case a ``pseudo-inverse" of the matrix can be computed in which one sets $1/\sigma_i=0$. This is known as a singular value reset, and in practice one chooses a cutoff such that all singular values smaller than that cutoff are reset to zero. If resetting $\infty$ to zero makes the reader feel uneasy know that they are not alone. In doing this one effectively  reduces the rank of the matrix to invert the ``part" containing non-zero singular values, and dropping the information from the reset singular values. If we wish to continue with SVD we can invert $C(t_0)$ and write
+
+\begin{equation}
+\tilde{C}(t)v_{\alpha}(t)=\lambda_{\alpha}(t)v_{\alpha}(t)
+\end{equation}
+
+where $\tilde{C}(t)=C^{-1}(t_0)C(t)$. Again I would exercise caution with this method in general. if singular values are getting reset one should ``prune" the operator basis for noisy or vanishing operators and explore other ranges of $t_0$.
+\subsection{Principal Correlators and Eigenvectors}
+
+There are a few technical details with extracting principal correlators $\lambda_{\alpha}(t)$, and eigenvectors $v_{\alpha}(t)$. The energy spectra are extracted from the time-dependance of the principal correlators. Equation \ref{spec_dec} suggests the principle correlators behave as $\sim e^{-E_{\alpha }t}$, and for Equation \ref{gevp} to hold $\lambda_{\alpha}(t_0)=1$ leading us to the general time behavior of $\lambda_{\alpha}(t)\sim e^{-E_{\alpha}(t-t_0)}$. We can find if the eigenvectors have the relationship $Z_i^{\alpha} = \langle 0|O_i|\alpha\rangle = \left(V^{-1}\right)^{\alpha}_i \sqrt{2E_{\alpha}}e^{t_0E_{\alpha}/2}$, we can reproduce equation \ref{gevp} from the spectral decomposition in equation \ref{spec_dec}.
+
+
+\begin{align}
+C_{ij}(t)&=\sum_{n}\frac{Z_i^{n*}Z_j^n}{2E_{\alpha}}e^{-E_nt} \\
+C_{ij}(t)&=\sum_n \left(C(t_0)V\right)^{n}_i\left(V^{-1}\right)^n_j e^{-E_n(t-t_0)} \\
+C_{ij}(t) V_j^{\alpha} & = \sum_n  \left(C(t_0)V\right)^{n}_i\delta_{n\alpha}\lambda_n(t) \\
+C_{ij}(t) V_{j}^{\alpha}(t) & = \lambda^{\alpha}(t)C_{ij}(t_0)V^{\alpha}_{j}(t).
+\end{align}
+
+In practice it can be advantageous to write the principal correlators as two exponentials $\lambda_{\alpha}(t) = (1-A)e^{-E_{\alpha}(t-t_0)}+Ae^{-E_{\alpha}'(t-t_0)}$ where $A$ is to ensure $\lambda_{\alpha}(t_0)=1$, and $E_{\alpha}'$ is used to capture some of the excited state behavior that leaks into the earlier time behavior of the correlator. Generally $E_{\alpha}'$ is on the order of the first excited state the basis does not capture, and the quantity $A$ can display how much the excited state contributes to the correlator ($A=0$ for a perfect diagonalization on a complete basis).
+\end{document}
