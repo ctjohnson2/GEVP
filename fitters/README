@@ -1,6 +1,10 @@
 this c++ code is still under development, but to compile one needs itpp libraries and gsl
 
 
-python script fits principle correlators just fine but is slow
-MATLAB script fits and plots single principle correlators, much faster
-C++ fits multiple simultaneously in openmp (this is the version called by python GEVP.py but one can change that) 
+fitter.py python script fits principle correlators just fine but is slow
+fitter.m MATLAB script fits and plots single principle correlators, much faster
+fitter C++ fits multiple simultaneously in openmp (this is the version called by python GEVP.py but one can change that)
+
+
+meff.py effective mass computer for correlation function meff = log(C(3+t)/C(t))/-3
+print_cov.py prints covariance matrix for principle correlator

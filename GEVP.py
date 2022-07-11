@@ -132,19 +132,19 @@ def main():
         subprocess.run(f"mv {fit_jack_name} {mass_name}", shell=True)
   #    os.chdir("../../")
         #######################################################
-   #   mass_avg = []
-   #   for i in range(0,op_num):
-   #       mass_avg.append(np.mean(read_jacks.param("t0_"+str(t0)+"/mass_jacks/mass_state_"+str(i)+".jack"),axis = 0))
+      mass_avg = []
+      for i in range(0,op_num):
+          mass_avg.append(np.mean(read_jacks.param("t0_"+str(t0)+"/mass_jacks/mass_state_"+str(i)+".jack"),axis = 0))
       
-   #   Zs = eigen_solve.Zs(vecs,t0,mass_avg)
+      Zs = eigen_solve.Zs(vecs,t0,mass_avg)
       subprocess.run(f"mkdir t0_{t0}/eigenvectors", shell=True)
       for op in range(op_num):
         for row in range(op_num):
           write_jacks.t_("t0_"+str(t0)+"/eigenvectors/eigenvector_state_"+str(op)+"_op_"+str(row)+".jack",vecs[:,:,row,op])      
 
-   #   subprocess.run(f"mkdir t0_{t0}/Zs", shell=True)
-   #   for op in range(op_num):
-   #     for row in range(op_num):
-   #       write_jacks.t_("t0_"+str(t0)+"/Zs/Z_state_"+str(op)+"_op_"+str(row)+".jack",Zs[:,:,row,op])
+      subprocess.run(f"mkdir t0_{t0}/Zs", shell=True)
+      for op in range(op_num):
+        for row in range(op_num):
+          write_jacks.t_("t0_"+str(t0)+"/Zs/Z_state_"+str(op)+"_op_"+str(row)+".jack",Zs[:,:,row,op])
 if __name__=="__main__":
    main() 
