@@ -63,7 +63,7 @@ class Read{
 
     public:
 	    vector<vector<double>> prin_corr( string file_location ); // read and return principle correlation function
-
+            void write_mass_jack(vector<double> mass_jack, string name, int Ncfgs);
 
 };
 
@@ -75,7 +75,7 @@ class Fit_stuff{
 		vector<double> double_exp(int t0, int tmin, int tmax, double pars[3]);
 		vector<double>	double_exp_jac(int t0, int t, double pars[3]);
                 double chisq(vector<vector<double>> prin_corr, itpp::mat invcov, int cfg, const params& pars, const fit_controls& controls );
-		vector<double> cg_minizer(vector<vector<double>> prin_corr,itpp::mat invcov,int cfg,  int t0, int tmin, int tmax, int tslice_num );
+		vector<double> cg_minizer(vector<vector<double>> prin_corr,itpp::mat invcov,int cfg,  int t0, int tmin, int tmax, int tslice_num,double init[3] );
 		fit_params fit_prin_corr(vector<vector<double>> p_corr_jack, itpp::mat invcov, int t0, int tmin, int tmax, int tslice_num);
 		double get_chisq(vector<vector<double>> prin_corr, vector<double> lambda, itpp::mat invcov, int tmin, int tmin_fit, int tmax);
 };

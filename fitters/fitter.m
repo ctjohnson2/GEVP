@@ -1,11 +1,11 @@
-%%%%%% read in principle correlator %%%%%%%%%%%%%%%
+%%%%%% read in principle correlator and define fit params %%%%%%%%%%%%%%%
 prin_corr_filename = 'principle_correlator_6.jack';
-svd_cut = 1e-12;
+svd_cut = 1e-12; %%% svd cutoff for pseudoinversion of covariance matrix
 t0 =2;
 tmin =3;
 tmax = 20;
 formatSpec = '%f';
-addpath("/home/chris/projects/GEVP/example/t0_2/principle_correlators/");
+addpath("/home/chris/projects/GEVP/fitters/");
 file_ = fopen(prin_corr_filename,'r');
 format long;
 prin_corr = fscanf(file_,formatSpec);
@@ -32,7 +32,7 @@ for t1 = 1:Nt
         cov_little = cov_little/(Ncfgs);
         cov_little = cov_little/(Ncfgs-1);
         Cov(t1,t2) = cov_little;
-        Cov(t2,t1) = cov_little;
+        
     end
 end
 InvCov = pinv(Cov,svd_cut);

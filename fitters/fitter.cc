@@ -1,6 +1,7 @@
 #include "fitter.h"
 #include <sstream>
 #include <iostream>
+#include<string>
 #include <cmath>
 
 
@@ -54,6 +55,19 @@ vector<vector<double>>  Read::prin_corr(string file_location ){
         
        
        return prin;
+
+};
+
+void Read::write_mass_jack(vector<double> mass_jack, string name, int Ncfgs){
+
+   ofstream myfile;
+   myfile.open(name);
+   myfile<<0 << " "<<Ncfgs<<endl;
+   for (int cfg = 0; cfg < Ncfgs; cfg++){
+
+       myfile<<" "<<0<<" "<<mass_jack[cfg]<<"\n";
+            }
+   myfile.close();
 
 };
 
@@ -382,7 +396,7 @@ chisquare_grad(x,params,df);
 
 
 
-vector<double> Fit_stuff::cg_minizer(vector<vector<double>> prin_corr,itpp::mat invcov,int cfg,  int t0, int tmin, int tmax, int tmin_fit ){
+vector<double> Fit_stuff::cg_minizer(vector<vector<double>> prin_corr,itpp::mat invcov,int cfg,  int t0, int tmin, int tmax, int tmin_fit, double init[3] ){
 	 
          int Nt = prin_corr.size();
      
@@ -413,7 +427,7 @@ vector<double> Fit_stuff::cg_minizer(vector<vector<double>> prin_corr,itpp::mat 
 
 
 	 x = gsl_vector_alloc(3);
-	 gsl_vector_set(x,0,0.506); gsl_vector_set(x,1,0.5009); gsl_vector_set(x,2,1.7547);
+	 gsl_vector_set(x,0,init[0]); gsl_vector_set(x,1,init[1]); gsl_vector_set(x,2,init[2]);
 
 	 T = gsl_multimin_fdfminimizer_conjugate_fr;
 	 s = gsl_multimin_fdfminimizer_alloc(T,3);
@@ -448,10 +462,12 @@ fit_params Fit_stuff::fit_prin_corr(vector<vector<double>> p_corr_jack, itpp::ma
 	int Ncfgs = p_corr_jack[0].size();
         vector<double> A;vector<double> m0;vector<double>m1;
 
+        double init[3];
 
         for(int cfg =0;cfg<Ncfgs;cfg++){
-        	
-		vector<double> answer = cg_minizer(p_corr_jack, invcov, cfg,  t0, tmin, tmax, tslice_num);
+        	if (cfg ==0){init[0]=0.506; init[1]=0.5009; init[2] =1.7547;}
+                else{init[0] = A[0]; init[1] = m0[0]; init[2] = m1[0];}
+		vector<double> answer = cg_minizer(p_corr_jack, invcov, cfg,  t0, tmin, tmax, tslice_num,init);
                 A.push_back(answer[0]);m0.push_back(answer[1]);m1.push_back(answer[2]);
 	}
 	 
@@ -474,6 +490,38 @@ fit_params Fit_stuff::fit_prin_corr(vector<vector<double>> p_corr_jack, itpp::ma
 	
 };
 
+/*
+fit_params Fit_stuff::fit_prin_corr(vector<double> p_corr_jack, itpp::mat invcov, int t0, int tmin, int tmax, int tslice_num){
+
+        //vector<vector<double>> p_corr_jack = ensem.scale_up(corr);
+        int Ncfgs = p_corr_jack[0].size();
+        vector<double> A;vector<double> m0;vector<double>m1;
+
+
+        for(int cfg =0;cfg<Ncfgs;cfg++){
+
+                vector<double> answer = cg_minizer(p_corr_jack, invcov, cfg,  t0, tmin, tmax, tslice_num);
+                A.push_back(answer[0]);m0.push_back(answer[1]);m1.push_back(answer[2]);
+        }
+
+        vector<double> A_jack = ensem.scale_down(A); vector<double> m0_jack = ensem.scale_down(m0); vector<double> m1_jack = ensem.scale_down(m1);
+
+        fit_params result;
+        result.A = A_jack; result.m0 = m0_jack; result.m1 = m1_jack;
+        // get chisq
+
+        double pars_new[3];
+        pars_new[0] = ensem.average(A_jack); pars_new[1] = ensem.average(m0_jack); pars_new[2] = ensem.average(m1_jack);
+
+
+        vector<double> lambda = fit.double_exp(t0, tslice_num, tmax, pars_new);
+        vector<vector<double>> p_corr = ensem.scale_down(p_corr_jack);
+
+
+        result.chisq = get_chisq(p_corr_jack, lambda, invcov, tmin, tslice_num, tmax);
+        return result;
+
+};*/
 
 
 
@@ -490,32 +538,48 @@ fit_params Fit_stuff::fit_prin_corr(vector<vector<double>> p_corr_jack, itpp::ma
 	Read rd;
         vector<vector<double>> corr = rd.prin_corr(filen);
         
-
-//	ensem.scale_up(corr);
-
         Fit_stuff fit;
 
-
         int Ncfgs = corr[0].size();
-        
-	
+        	
 	itpp::mat invcov = ensem.invcovariance(tmin, tmax, svd_cutoff, corr);
  
 	vector<vector<double>> p_corr_jack = ensem.scale_up(corr);
-
+        
+        double chisq =1e10; vector<double> mass0;
+        corr_pack best_fit_params;
+        best_fit_params.t0 = t0;
+        string name = filen.erase(filen.length()-5);
+        ofstream myfile;
+        myfile.open(name+=".fit_info");
 #ifdef _OPENMP
   int nthr = omp_get_max_threads();
   
-  
+    
 #pragma omp parallel for num_threads(nthr)  default(shared)
 
 	for(int t=minTSlices; t<tmax-tmin;t++){
 	fit_params result = fit.fit_prin_corr(p_corr_jack, invcov, t0, tmin, tmax, t);
-	//cout<<"t: "<<t<<"    "<<omp_get_thread_num()  <<endl;
-	cout<<ensem.average(result.m0)<<" "<<sqrt(ensem.variance(result.m0)/(Ncfgs-1))<<"    CHISQ= "<<result.chisq<<endl;
+
+	cout<<"tmin = "<<tmin<<" tmax= "<<t+tmin<<" || "<<ensem.average(result.m0)<<" "<<sqrt(ensem.variance(result.m0)/(Ncfgs-1))<<"    CHISQ= "<<result.chisq<<endl;
+	
+       
+        myfile<<"tmin = "<<tmin<<" tmax= "<<t+tmin<<" || "<<ensem.average(result.m0)<<" "<<sqrt(ensem.variance(result.m0)/(Ncfgs-1))<<"    CHISQ= "<<result.chisq<<endl;
+        
+	if (result.chisq<chisq){chisq = result.chisq; best_fit_params.tmin = tmin; best_fit_params.tmax = tmax ; best_fit_params.tmin_fit = t; best_fit_params.prin_corr = result.m0; }
 	}
-	
-	
+        myfile.close();
+
+        cout<<"-------------------------------------------------------------------------------"<<endl;
+        cout<<"BEST FIT: "<<endl;
+        cout<<"tmin = "<<best_fit_params.tmin<<" tmax= "<<best_fit_params.tmin+best_fit_params.tmin_fit<<" || "<<ensem.average(best_fit_params.prin_corr)<<" "<<sqrt(ensem.variance(best_fit_params.prin_corr)/(Ncfgs-1))<<"    CHISQ= "<<chisq<<endl;
+        
+         
+        vector<double> mass_jack = best_fit_params.prin_corr;
+        
+        name+="_mass.jack";
+        rd.write_mass_jack(mass_jack, name, Ncfgs);
+        
 #endif
 	return 0;
 }

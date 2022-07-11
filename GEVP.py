@@ -103,33 +103,33 @@ def main():
         write_jacks.t_("t0_"+str(t0)+"/principle_correlators/principle_correlator_"+str(op)+".jack",prin_corrs[:,:,op])
       ############# run principal correlator fits and store fit logs ###################
 
-   #   subprocess.run(f"mkdir t0_{t0}/prin_corr_fit_logs", shell=True)
+      subprocess.run(f"mkdir t0_{t0}/prin_corr_fit_logs", shell=True)
 
-   #   direct = "t0_"+str(t0)+"/prin_corr_fit_logs"
-   #   os.chdir(direct)
+      direct = "t0_"+str(t0)+"/prin_corr_fit_logs"
+      os.chdir(direct)
 
-    #  tmin = t0+1
-    #  tmax = 26
-    #  tslicenum = 5
+      tmin = t0+1
+      tmax = 26
+      tslicenum = 5
     #  noise_cut_off = 0.3
-    #  svd_cut_off = 1e-6
+      svd_cut_off = 1e-6
     #  fit_crit = "generic"
-   #   for i in range(0,op_num):
+      for i in range(0,op_num):
 
-   #     name = "../principle_correlators/principle_correlator_"+str(i)+".jack"
-   #     subprocess.run(f"/home/chris/code/hadspec/install/jackFitter/bin/fit_prin_corr {name} {t0} {tmin} {tmax} {noise_cut_off} {fit_crit} {tslicenum} {svd_cut_off}", shell=True)
-   #     fitname = "principle_correlator_"+str(i)+".jack_"
-   #     subprocess.run(f"mv ../principle_correlators/{fitname}* .", shell=True)
+        name = "../principle_correlators/principle_correlator_"+str(i)+".jack"
+        subprocess.run(f"/Users/christopherjohnson/projects/GEVP/fitters/fitter {name} {t0} {tmin} {tmax} {tslicenum} {svd_cut_off}", shell=True)
+        fitname = "principle_correlator_"+str(i)+".fit_info"
+        subprocess.run(f"mv ../principle_correlators/{fitname}* .", shell=True)
     
       ############## copy fit results ################################
-  #    os.chdir("../../")
-  #    subprocess.run(f"mkdir t0_{t0}/mass_jacks", shell=True)
-  #    direct = "t0_"+str(t0)+"/mass_jacks"
-  #    os.chdir(direct)
-  #    for i in range(0,op_num):
-  #      mass_name = "mass_state_"+str(i)+".jack"
-  #      fit_jack_name = "../prin_corr_fit_logs/principle_correlator_"+str(i)+".jack_prin_corr_exp_fit_mass0.jack"
-  #      subprocess.run(f"cp {fit_jack_name} {mass_name}", shell=True)
+      os.chdir("../../")
+      subprocess.run(f"mkdir t0_{t0}/mass_jacks", shell=True)
+      direct = "t0_"+str(t0)+"/mass_jacks"
+      os.chdir(direct)
+      for i in range(0,op_num):
+        mass_name = "mass_state_"+str(i)+".jack"
+        fit_jack_name = "../principle_correlators/principle_correlator_"+str(i)+"_mass.jack"
+        subprocess.run(f"mv {fit_jack_name} {mass_name}", shell=True)
   #    os.chdir("../../")
         #######################################################
    #   mass_avg = []

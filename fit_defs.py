@@ -122,7 +122,7 @@ class eigen_solve():
       for cfg in range(0,Ncfgs):
 
         Ct0 = Corr_jack[cfg,:,:,t0]
-
+        
         L = np.linalg.cholesky(Ct0)
         Ldag = L.conj().T
         Linv = np.linalg.inv(L)
@@ -260,7 +260,7 @@ class jack_utils():
         unjacked = np.append(unjacked,tmp)
       return unjacked
 
-    def my_cinv(prin_corr, tmin, tmax, svd_cut_off):
+    def my_cov(prin_corr, tmin, tmax):
         ############# inverse covariance matrix ########################
         Ncfgs = prin_corr.shape[0]
         
@@ -276,8 +276,10 @@ class jack_utils():
               
               cov+=(prin_corr[cfg,t1+tmin]-avg[t1])*(prin_corr[cfg,t2+tmin]-avg[t2])
      
-            Cov[t1,t2] = cov/(Ncfgs)
-     
+            Cov[t1,t2] = cov/(Ncfgs*(Ncfgs-1))
+        return Cov
+    def mycinv(prin_corr, tmin, tmax, svd_cutoff):
+        Cov = my_cov(prin_corr, tmin, tmax)
         cinv = np.linalg.pinv(Cov, rcond = svd_cut_off)
         
         return cinv
