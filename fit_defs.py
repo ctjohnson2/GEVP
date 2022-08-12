@@ -65,6 +65,7 @@ class eigen_solve():
           Creal = []
           p = open("corr.1x1.dat","w")
           p.write(str(Ncfgs)+" "+str(Ntslices)+" 0 0 1\n")
+          print("Number Configs",Ncfgs)
           for cfg in range(0,Ncfgs):
 
             for t in range(0,Ntslices):
@@ -73,7 +74,7 @@ class eigen_solve():
                   string = str(t)+" "+str(data[cfg][ops_map[0][1]][ops_map[0][1]][t].real)
                  else:
                   
-                  string = str(t)+" "+str(data[cfg][0][0][t].real)
+                  string = str(t)+" "+str(data[cfg][t].real)
                  p.write(string+"\n")
          
           p.close()
